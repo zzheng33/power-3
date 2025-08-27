@@ -305,6 +305,6 @@ setup_UNet
 setup_Resnet
 setup_miniGAN_env
 setup_docker
-new_image
+# new_image
 setup_ecp_cpu
 setup_cudnn
