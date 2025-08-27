@@ -59,7 +59,7 @@ cpu_caps = [540]
 
 def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
 
-    def cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_ips, output_gpu_metrics,output_mem, output_cpu_metrics):
+    def cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics):
         
         
         # # Set CPU and GPU power caps and wait for them to take effect
@@ -108,10 +108,10 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
     
     for cpu_cap in cpu_caps:
         for gpu_cap in gpu_caps:
-            output_cpu_power = f"../data/{suite}_solo/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_power.csv"
-            output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_metrics.csv"
-            output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_metrics.csv"
-            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_ips,output_gpu_metrics,output_mem,output_cpu_metrics)
+            output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
+            output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/{cpu_cap}gpu_metrics.csv"
+            output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
+            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_cpu_metrics)
 
 
     # # make sure the first run has complete data
