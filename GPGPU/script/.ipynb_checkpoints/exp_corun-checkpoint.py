@@ -32,7 +32,7 @@ ecp_benchmarks = ['XSBench','miniGAN','CRADL','sw4lite','Laghos','bert_large','U
 
 
 npb_benchmarks = ['bt','cg','ep','ft','is','lu','mg','sp','ua','miniFE','LULESH','Nekbone']
-
+# npb_benchmarks = ['is']
 
 
 hec_benchmarks = ["addBiasResidualLayerNorm", "aobench", "background-subtract", "chacha20", "convolution3D", "dropout", "extrema", "fft", "kalman", "knn", "softmax", "stencil3d", "zmddft", "zoom"]
@@ -45,11 +45,6 @@ altis_benchmarks_2 = ['cfd','cfd_double','fdtd2d','kmeans','lavamd',
                       'nw','particlefilter_float','particlefilter_naive','raytracing',
                       'srad','where']
 
-
-altis_benchmarks_0 = []
-altis_benchmarks_1 = ['sort']
-altis_benchmarks_2 = ['cfd_double','fdtd2d','particlefilter_naive',
-                      'srad']
 
 
 
@@ -64,13 +59,13 @@ cpu_caps = [540]
 
 def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
 
-    def cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics):
+    def cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_ips, output_gpu_metrics,output_mem, output_cpu_metrics):
         
         
-        # # Set CPU and GPU power caps and wait for them to take effect
-        # # subprocess.run([f"./power_util/gpu_fs.sh {gpu_freq}"], shell=True)
-        # subprocess.run([f"./power_util/cpu_cap.sh {cpu_cap}"], shell=True)
-        # subprocess.run([f"./power_util/gpu_cap.sh {gpu_cap}"], shell=True)
+        # Set CPU and GPU power caps and wait for them to take effect
+        # subprocess.run([f"./power_util/gpu_fs.sh {gpu_freq}"], shell=True)
+        subprocess.run([f"./power_util/cpu_cap.sh {cpu_cap}"], shell=True)
+        subprocess.run([f"./power_util/gpu_cap.sh {gpu_cap}"], shell=True)
         
         time.sleep(0.2)  # Wait for the power caps to take effect
     
@@ -99,9 +94,8 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
         monitor_process5 = subprocess.Popen(monitor_command_cpu_metrics, shell=True, stdin=subprocess.PIPE, text=True)
 
         # # monitor GPU metrics
-        if suite != "npb":
-            monitor_command_gpu_metrics = f"echo 9900 | sudo -S {python_executable} {read_gpu_metrics}  --output_csv {output_gpu_metrics} --pid {benchmark_pid} --num_gpu {num_gpu}"
-            monitor_process4 = subprocess.Popen(monitor_command_gpu_metrics, shell=True, stdin=subprocess.PIPE, text=True)
+        monitor_command_gpu_metrics = f"echo 9900 | sudo -S {python_executable} {read_gpu_metrics}  --output_csv {output_gpu_metrics} --pid {benchmark_pid} --num_gpu {num_gpu}"
+        monitor_process4 = subprocess.Popen(monitor_command_gpu_metrics, shell=True, stdin=subprocess.PIPE, text=True)
 
             
         benchmark_process.wait()  # Wait for the benchmark to complete
@@ -113,26 +107,32 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
     
     for cpu_cap in cpu_caps:
         for gpu_cap in gpu_caps:
-            output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
-            output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
-            output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
-            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics)
+            output_cpu_power = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_power.csv"
+            output_gpu_power = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_power.csv"
+            output_ips = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_ips.csv"
+            output_mem = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_mem.csv"
+            output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_metrics.csv"
+            output_cpu_metrics = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_metrics.csv"
+            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_ips,output_gpu_metrics,output_mem,output_cpu_metrics)
 
 
-    # make sure the first run has complete data
-    cpu_cap = cpu_caps[0]
-    gpu_cap = gpu_caps[0]
-    output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
-    output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
-    output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
-    cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics)
+    # # make sure the first run has complete data
+    # cpu_cap = cpu_caps[0]
+    # gpu_cap = gpu_caps[0]
+    # output_cpu_power = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_power.csv"
+    # output_gpu_power = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_power.csv"
+    # output_ips = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_ips.csv"
+    # output_mem = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_mem.csv"
+    # output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_metrics.csv"
+    # output_cpu_metrics = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_metrics.csv"
+    # cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_ips,output_gpu_metrics,output_mem,output_cpu_metrics)
 
 
 
 
-    # subprocess.run([f"./power_util/cpu_cap.sh 540"], shell=True)
-    # subprocess.run([f"./power_util/gpu_cap.sh 250"], shell=True)
-    # # subprocess.run([f"./power_util/gpu_fs.sh 1410"], shell=True)
+    subprocess.run([f"./power_util/cpu_cap.sh 540"], shell=True)
+    subprocess.run([f"./power_util/gpu_cap.sh 250"], shell=True)
+    # subprocess.run([f"./power_util/gpu_fs.sh 1410"], shell=True)
 
 
 if __name__ == "__main__":

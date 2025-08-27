@@ -46,6 +46,11 @@ altis_benchmarks_2 = ['cfd','cfd_double','fdtd2d','kmeans','lavamd',
                       'srad','where']
 
 
+altis_benchmarks_0 = []
+altis_benchmarks_1 = ['sort']
+altis_benchmarks_2 = ['cfd_double','fdtd2d','particlefilter_naive',
+                      'srad']
+
 
 
 
@@ -109,21 +114,18 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
     for cpu_cap in cpu_caps:
         for gpu_cap in gpu_caps:
             output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
-            output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/{cpu_cap}gpu_metrics.csv"
+            output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
             output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
-            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_cpu_metrics)
+            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics)
 
 
-    # # make sure the first run has complete data
-    # cpu_cap = cpu_caps[0]
-    # gpu_cap = gpu_caps[0]
-    # output_cpu_power = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_power.csv"
-    # output_gpu_power = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_power.csv"
-    # output_ips = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_ips.csv"
-    # output_mem = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_mem.csv"
-    # output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_gpu_metrics.csv"
-    # output_cpu_metrics = f"../data/{suite}_power_cap_res/{benchmark}/{cpu_cap}_{gpu_cap}_cpu_metrics.csv"
-    # cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_power,output_ips,output_gpu_metrics,output_mem,output_cpu_metrics)
+    # make sure the first run has complete data
+    cpu_cap = cpu_caps[0]
+    gpu_cap = gpu_caps[0]
+    output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
+    output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
+    output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
+    cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics)
 
 
 
