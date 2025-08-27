@@ -46,10 +46,10 @@ altis_benchmarks_2 = ['cfd','cfd_double','fdtd2d','kmeans','lavamd',
                       'srad','where']
 
 
-altis_benchmarks_0 = []
-altis_benchmarks_1 = ['sort']
-altis_benchmarks_2 = ['cfd_double','fdtd2d','particlefilter_naive',
-                      'srad']
+# altis_benchmarks_0 = []
+# altis_benchmarks_1 = ['sort']
+# altis_benchmarks_2 = ['cfd_double','fdtd2d','particlefilter_naive',
+#                       'srad']
 
 
 
