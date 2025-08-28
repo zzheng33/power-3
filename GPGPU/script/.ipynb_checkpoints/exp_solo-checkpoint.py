@@ -75,7 +75,7 @@ ecp_benchmarks = ['XSBench','miniGAN','CRADL','sw4lite','Laghos','bert_large','U
 
 npb_benchmarks = ['bt','cg','ep','ft','is','lu','mg','sp','ua','miniFE','LULESH','Nekbone']
 
-npb_benchmarks = ['miniFE']
+npb_benchmarks = ['mg']
 
 
 
@@ -105,6 +105,14 @@ gpu_caps = [250]
 cpu_caps = [540]
 
 
+MG = "g1"
+
+
+# def ensure_resctrl(mg="g1"):
+#     subprocess.run("sudo mount -t resctrl resctrl /sys/fs/resctrl || true", shell=True, check=False)
+#     subprocess.run(f"sudo mkdir -p /sys/fs/resctrl/mon_groups/{mg}", shell=True, check=False)
+
+# ensure_resctrl()
 
 
 def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
@@ -132,17 +140,27 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
         elif suite == "hec":
             run_benchmark_command = f"{python_executable} {run_hec} --benchmark {benchmark} --benchmark_script_dir {os.path.join(home_dir, benchmark_script_dir)}"
         
-        # benchmark_process = subprocess.Popen(run_benchmark_command, shell=True)
+        benchmark_process = subprocess.Popen(run_benchmark_command, shell=True)
         benchmark_process = subprocess.Popen(f"taskset -c {allowed_str} {run_benchmark_command}", shell=True)
         benchmark_pid = benchmark_process.pid
+
+        # benchmark_process = subprocess.Popen(
+        #     f"taskset -c {allowed_str} {run_benchmark_command}",
+        #     shell=True
+        # )
+        # benchmark_pid = benchmark_process.pid  # this is the actual app PID
+        
+        # 2. Attach the PID to resctrl monitor group
+        # attach_cmd = f"echo {benchmark_pid} | sudo tee /sys/fs/resctrl/mon_groups/{MG}/tasks"
+        # subprocess.run(attach_cmd, shell=True, check=True)
 
         # monitor cpu power
         # monitor_command_cpu = f"echo 9900 | sudo -S {python_executable} {read_cpu_power}  --output_csv {output_cpu_power} --pid {benchmark_pid} "
         monitor_command_cpu = (
-    f"echo 9900 | sudo -S taskset -c {sib1_str} "
-    f"{python_executable} {read_cpu_power} "
-    f"--output_csv {output_cpu_power} --pid {benchmark_pid}"
-)
+            f"echo 9900 | sudo -S taskset -c {sib1_str} "
+            f"{python_executable} {read_cpu_power} "
+            f"--output_csv {output_cpu_power} --pid {benchmark_pid}"
+        )
         monitor_process1 = subprocess.Popen(monitor_command_cpu, shell=True, stdin=subprocess.PIPE, text=True)
 
          # read cpu_metrics
@@ -152,18 +170,24 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
 #     f"{python_executable} {read_cpu_metrics} "
 #     f"--output_csv {output_cpu_metrics} --pid {benchmark_pid}"
 # )
+#         monitor_command_mem = (
+#     f"echo 9900 | sudo -S taskset -c {t_mem} "
+#     f"{python_executable} {read_mem} "
+#     f"--output_csv {output_mem} --pid {benchmark_pid}"
+# )
+#         monitor_process2 = subprocess.Popen(monitor_command_mem, shell=True, stdin=subprocess.PIPE, text=True)
         monitor_command_mem = (
-    f"echo 9900 | sudo -S taskset -c {t_mem} "
-    f"{python_executable} {read_mem} "
-    f"--output_csv {output_mem} --pid {benchmark_pid}"
-)
+            f"echo 9900 | sudo -S taskset -c {t_mem} "
+            f"{python_executable} {read_mem} "
+            f"--output_csv {output_mem} --pid {benchmark_pid}"
+        )
         monitor_process2 = subprocess.Popen(monitor_command_mem, shell=True, stdin=subprocess.PIPE, text=True)
-
+    
         monitor_command_ips = (
-    f"echo 9900 | sudo -S taskset -c {t_ips} "
-    f"{python_executable} {read_ips} "
-    f"--output_csv {output_ips} --pid {benchmark_pid}"
-)
+            f"echo 9900 | sudo -S taskset -c {t_ips} "
+            f"{python_executable} {read_ips} "
+            f"--output_csv {output_ips} --pid {benchmark_pid}"
+        )
         monitor_process3 = subprocess.Popen(monitor_command_ips, shell=True, stdin=subprocess.PIPE, text=True)
 
         # # monitor GPU metrics

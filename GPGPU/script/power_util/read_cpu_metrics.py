@@ -61,6 +61,69 @@ def monitor_imc_throughput(benchmark_pid, interval=1.0):
 
     return data
 
+
+
+
+
+def monitor_mbm(pid, interval=1.0, mg="g1", verbose=False):
+    base = "/sys/fs/resctrl"
+    mon_path = f"{base}/mon_groups/{mg}/mon_data"
+
+    # collect all mon_L3_xx paths
+    l3_paths = []
+    if not os.path.exists(mon_path):
+        raise RuntimeError(f"MBM path missing: {mon_path}")
+    for entry in os.listdir(mon_path):
+        fpath = os.path.join(mon_path, entry, "mbm_total_bytes")
+        if os.path.isfile(fpath):
+            l3_paths.append(fpath)
+    if not l3_paths:
+        raise RuntimeError(f"No mbm_total_bytes files under {mon_path}")
+
+    if not psutil.pid_exists(pid):
+        raise RuntimeError(f"PID {pid} not found")
+
+    def read_total_bytes():
+        total = 0
+        for f in l3_paths:
+            with open(f) as fh:
+                total += int(fh.read().strip())
+        return total
+
+    samples = []
+    start = last = time.time()
+    prev = read_total_bytes()
+
+    while True:
+        if not psutil.pid_exists(pid):
+            break
+
+        now = time.time()
+        sleep_time = interval - (now - last)
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+        cur = time.time()
+
+        cur_total = read_total_bytes()
+        dt = max(cur - last, 1e-6)
+        delta = max(cur_total - prev, 0)
+
+        mbps = delta / (1024 * 1024) / dt
+        elapsed = cur - start
+
+        samples.append((elapsed, mbps))   # return tuple
+        if verbose:
+            print(f"[{elapsed:6.1f}s] {mbps:.1f} MB/s")
+
+        prev, last = cur_total, cur
+    # print(samples)
+    return samples
+
+
+
+
+
+
 def write_throughput_csv(output_csv, throughput_data):
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     with open(output_csv, "w", newline="") as f:
@@ -77,5 +140,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     throughput = monitor_imc_throughput(args.pid, args.interval)
+    # throughput = monitor_mbm(args.pid, args.interval)
     write_throughput_csv(args.output_csv, throughput)
 

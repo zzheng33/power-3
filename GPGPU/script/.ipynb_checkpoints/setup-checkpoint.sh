@@ -292,7 +292,7 @@ setup_MBM() {
     sudo mount -t resctrl resctrl /sys/fs/resctrl
     CG=cpuonly
     MG=g1
-    sudo mkdir -p /sys/fs/resctrl/$CG/mon_groups/$MG
+    sudo mkdir -p /sys/fs/resctrl/mon_groups/$MG
 
 }
 
