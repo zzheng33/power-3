@@ -189,13 +189,13 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
 
 
     # make sure the first run has complete data
-    cpu_cap = cpu_caps[0]
-    gpu_cap = gpu_caps[0]
-    output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
-    output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
-    output_mem = f"../data/{suite}_solo/{benchmark}/cpu_mem.csv"
-    output_ips = f"../data/{suite}_solo/{benchmark}/cpu_ips.csv"
-    cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_mem, output_ips)
+    # cpu_cap = cpu_caps[0]
+    # gpu_cap = gpu_caps[0]
+    # output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
+    # output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
+    # output_mem = f"../data/{suite}_solo/{benchmark}/cpu_mem.csv"
+    # output_ips = f"../data/{suite}_solo/{benchmark}/cpu_ips.csv"
+    # cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_mem, output_ips)
 
 
 

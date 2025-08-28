@@ -4,6 +4,7 @@ import argparse
 import psutil
 import subprocess
 import re
+import os
 import signal
 
 def monitor_imc_throughput(benchmark_pid, interval=1.0):
@@ -61,6 +62,7 @@ def monitor_imc_throughput(benchmark_pid, interval=1.0):
     return data
 
 def write_throughput_csv(output_csv, throughput_data):
+    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     with open(output_csv, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["Time (s)", "Memory Throughput (MB/s)"])

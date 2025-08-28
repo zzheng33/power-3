@@ -3,6 +3,7 @@ import csv
 import argparse
 import psutil
 import subprocess
+import os
 
 # Single perf stream for both instructions and LLC misses
 def monitor_ips_and_llc(benchmark_pid, ips_data, llc_data, interval=0.5):
@@ -62,6 +63,7 @@ def monitor_ips_and_llc(benchmark_pid, ips_data, llc_data, interval=0.5):
 
 def write_ips_llc_csv(output_csv, ips_data, llc_data):
     # align by shortest length
+    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     n = min(len(ips_data), len(llc_data))
     with open(output_csv, "w", newline="") as f:
         w = csv.writer(f)

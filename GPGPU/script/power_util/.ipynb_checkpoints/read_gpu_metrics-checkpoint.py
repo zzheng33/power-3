@@ -81,6 +81,7 @@ def monitor_gpu_performance(benchmark_pid, output_csv, interval=0.1):
         performance_data.append(row)
     
     with open(output_csv, 'w', newline='') as file:
+        os.makedirs(os.path.dirname(output_csv), exist_ok=True)
         writer = csv.writer(file)
         headers = ['Time (s)', 'SM Clock (MHz)', 'DRAM Active', 'FP16 Active', 'FP32 Active', 'FP64 Active', 'Power (W)']
         writer.writerow(headers)
