@@ -287,6 +287,16 @@ setup_cudnn() {
 # wget https://www.ks.uiuc.edu/Research/namd/utilities/stmv.tar.gz
 # wget http://www.ks.uiuc.edu/Research/namd/2.13/benchmarks/stmv_nve_cuda.namd
 
+
+setup_MBM() {
+    sudo mount -t resctrl resctrl /sys/fs/resctrl
+    CG=cpuonly
+    MG=g1
+    sudo mkdir -p /sys/fs/resctrl/$CG/mon_groups/$MG
+
+}
+
+
 setup_DCGM
 install_dependence
 load_benchmark
@@ -308,3 +318,4 @@ setup_docker
 # new_image
 setup_ecp_cpu
 setup_cudnn
+setup_MBM

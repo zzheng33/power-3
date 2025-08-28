@@ -75,7 +75,7 @@ ecp_benchmarks = ['XSBench','miniGAN','CRADL','sw4lite','Laghos','bert_large','U
 
 npb_benchmarks = ['bt','cg','ep','ft','is','lu','mg','sp','ua','miniFE','LULESH','Nekbone']
 
-npb_benchmarks = ['AMG2013']
+npb_benchmarks = ['miniFE']
 
 
 

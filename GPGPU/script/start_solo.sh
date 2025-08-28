@@ -41,7 +41,7 @@ for i in {1..1}; do
     echo "Running experiment $i..."
     python3 exp_solo.py --suite 2
 
-    sleep 3  # Wait before processing
+    sleep 1  # Wait before processing
     sudo chown -R cc:cc ../data/
 
 
