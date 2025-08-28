@@ -45,14 +45,14 @@ for i in {1..1}; do
     sudo chown -R cc:cc ../data/
 
 
-#     run_dir="$base_dir/run${i}"
-#     mkdir -p "$run_dir"
+    # run_dir="$base_dir/run${i}"
+    # mkdir -p "$run_dir"
 
-#     for benchmark in "${npb_benchmarks[@]}"; do
-#         if [ -d "$base_dir/$benchmark" ]; then
-#             mv "$base_dir/$benchmark" "$run_dir/"
-#         fi
-#     done
+    # for benchmark in "${npb_benchmarks[@]}"; do
+    #     if [ -d "$base_dir/$benchmark" ]; then
+    #         mv "$base_dir/$benchmark" "$run_dir/"
+    #     fi
+    # done
 
 done
 

@@ -184,11 +184,11 @@ setup_Laghos() {
 }
 
 setup_ecp_cpu() {
-    cd "${home_dir}/benchmark/ECP/miniFE/openmp/src/"
+    cd "${home_dir}/benchmark/ECP/CPU-only/miniFE/openmp/src/"
     
     make
 
-    cd "${home_dir}/benchmark/ECP/AMG2013/"
+    cd "${home_dir}/benchmark/ECP/CPU-only/AMG2013/"
   
     make
 }
@@ -305,6 +305,6 @@ setup_UNet
 setup_Resnet
 setup_miniGAN_env
 setup_docker
-new_image
+# new_image
 setup_ecp_cpu
 setup_cudnn
