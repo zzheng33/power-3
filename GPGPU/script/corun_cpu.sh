@@ -34,6 +34,6 @@ done
 remain_list=$(IFS=,; echo "${remain[*]}")
 
 
-taskset -c "$remain_list" ./sp.sh
+taskset -c "$remain_list" ./cg.sh
 
 

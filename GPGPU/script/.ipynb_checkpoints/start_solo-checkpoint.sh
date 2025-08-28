@@ -11,15 +11,15 @@ hec_benchmarks=("addBiasResidualLayerNorm" "aobench" "background-subtract" "chac
 npb_benchmarks=('bt' 'cg' 'ep' 'ft' 'is' 'lu' 'mg' 'sp' 'ua' 'miniFE' 'LULESH' 'Nekbone')
 
 # Base directory where benchmarks are stored
-base_dir="../data/altis_solo/"
+# base_dir="../data/altis_solo/"
 
-# Run exp_power_cap.py 5 times
-for i in {1..1}; do
-    echo "Running experiment $i..."
-    python3 exp_solo.py --suite 1
+# # Run exp_power_cap.py 5 times
+# for i in {1..1}; do
+#     echo "Running experiment $i..."
+#     python3 exp_solo.py --suite 1
 
-    sleep 3  # Wait before processing
-    sudo chown -R cc:cc ../data/
+#     sleep 3  # Wait before processing
+#     sudo chown -R cc:cc ../data/
 
     # # Create run directory inside ./data/ecp_power_cap_res/
     # run_dir="$base_dir/run${i}"
@@ -31,18 +31,18 @@ for i in {1..1}; do
     #         mv "$base_dir/$benchmark" "$run_dir/"
     #     fi
     # done
-done
+# done
 
 
-# base_dir="../data/npb_solo/"
+base_dir="../data/npb_solo/"
 
-# # Run exp_power_cap.py 5 times
-# for i in {1..1}; do
-#     echo "Running experiment $i..."
-#     python3 exp_solo.py --suite 2
+# Run exp_power_cap.py 5 times
+for i in {1..1}; do
+    echo "Running experiment $i..."
+    python3 exp_solo.py --suite 2
 
-#     sleep 3  # Wait before processing
-#     sudo chown -R cc:cc ../data/
+    sleep 3  # Wait before processing
+    sudo chown -R cc:cc ../data/
 
 
 #     run_dir="$base_dir/run${i}"
@@ -53,6 +53,7 @@ done
 #             mv "$base_dir/$benchmark" "$run_dir/"
 #         fi
 #     done
-# done
+
+done
 
 

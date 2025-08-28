@@ -5,6 +5,47 @@ import signal
 import argparse
 import csv
 import pandas as pd
+from pathlib import Path
+import psutil
+
+SYSFS = Path("/sys/devices/system/cpu")
+
+def expand_cpu_list(expr: str) -> list[int]:
+    out = []
+    for part in expr.split(","):
+        if "-" in part:
+            a, b = part.split("-")
+            out.extend(range(int(a), int(b) + 1))
+        else:
+            out.append(int(part))
+    return out
+
+def read_text(p: Path) -> str:
+    return p.read_text().strip()
+
+def thread_siblings(cpu: int) -> list[int]:
+    sib = read_text(SYSFS / f"cpu{cpu}/topology/thread_siblings_list")
+    return sorted(expand_cpu_list(sib))
+
+def online_cpus() -> list[int]:
+    return expand_cpu_list(read_text(SYSFS / "online"))
+
+sib0 = thread_siblings(0)   # GPU helper core (excluded)
+sib1 = thread_siblings(1)   # reserved for CPU power
+sib2 = thread_siblings(2)   # we will split its two threads
+
+# pick specific threads from core 2
+if len(sib2) < 2:
+    raise RuntimeError("Core 2 does not have two logical siblings (no SMT?)")
+t_mem = sib2[0]   # first logical thread of core 2
+t_ips = sib2[1]   # second logical thread of core 2
+
+# allowed CPUs = all online minus sib0, sib1, sib2
+allowed = sorted(set(online_cpus()) - set(sib0) - set(sib1) - set(sib2))
+
+allowed_str = ",".join(map(str, allowed))
+sib1_str = ",".join(map(str, sib1))
+
 
 num_gpu = 1
 
@@ -17,8 +58,9 @@ read_cpu_power = "./power_util/read_cpu_power.py"
 read_gpu_power = "./power_util/read_gpu_power.py"
 read_gpu_metrics = "./power_util/read_gpu_metrics.py"
 read_cpu_ips = "./power_util/read_cpu_ips.py"
-read_mem = "./power_util/read_mem.py"
-read_cpu_metrics = "./power_util/read_cpu_metrics.py"
+# read_mem = "./power_util/read_mem.py"
+read_mem = "./power_util/read_cpu_metrics.py"
+read_ips = "./power_util/read_cpu_metrics2.py"
 
 # scritps for running various benchmarks
 run_altis = "./run_benchmark/run_altis.py"
@@ -32,6 +74,8 @@ ecp_benchmarks = ['XSBench','miniGAN','CRADL','sw4lite','Laghos','bert_large','U
 
 
 npb_benchmarks = ['bt','cg','ep','ft','is','lu','mg','sp','ua','miniFE','LULESH','Nekbone']
+
+npb_benchmarks = ['mg']
 
 
 
@@ -62,9 +106,10 @@ cpu_caps = [540]
 
 
 
+
 def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
 
-    def cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics):
+    def cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_mem, output_ips):
         
         
         # # Set CPU and GPU power caps and wait for them to take effect
@@ -87,16 +132,39 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
         elif suite == "hec":
             run_benchmark_command = f"{python_executable} {run_hec} --benchmark {benchmark} --benchmark_script_dir {os.path.join(home_dir, benchmark_script_dir)}"
         
-        benchmark_process = subprocess.Popen(run_benchmark_command, shell=True)
+        # benchmark_process = subprocess.Popen(run_benchmark_command, shell=True)
+        benchmark_process = subprocess.Popen(f"taskset -c {allowed_str} {run_benchmark_command}", shell=True)
         benchmark_pid = benchmark_process.pid
 
         # monitor cpu power
-        monitor_command_cpu = f"echo 9900 | sudo -S {python_executable} {read_cpu_power}  --output_csv {output_cpu_power} --pid {benchmark_pid} "
+        # monitor_command_cpu = f"echo 9900 | sudo -S {python_executable} {read_cpu_power}  --output_csv {output_cpu_power} --pid {benchmark_pid} "
+        monitor_command_cpu = (
+    f"echo 9900 | sudo -S taskset -c {sib1_str} "
+    f"{python_executable} {read_cpu_power} "
+    f"--output_csv {output_cpu_power} --pid {benchmark_pid}"
+)
         monitor_process1 = subprocess.Popen(monitor_command_cpu, shell=True, stdin=subprocess.PIPE, text=True)
 
          # read cpu_metrics
-        monitor_command_cpu_metrics = f"echo 9900 | sudo -S {python_executable} {read_cpu_metrics}  --output_csv {output_cpu_metrics} --pid {benchmark_pid} "
-        monitor_process5 = subprocess.Popen(monitor_command_cpu_metrics, shell=True, stdin=subprocess.PIPE, text=True)
+        # monitor_command_cpu_metrics = f"echo 9900 | sudo -S {python_executable} {read_cpu_metrics}  --output_csv {output_cpu_metrics} --pid {benchmark_pid} "
+#         monitor_command_cpu_metrics = (
+#     f"echo 9900 | sudo -S taskset -c {sib2_str} "
+#     f"{python_executable} {read_cpu_metrics} "
+#     f"--output_csv {output_cpu_metrics} --pid {benchmark_pid}"
+# )
+        monitor_command_mem = (
+    f"echo 9900 | sudo -S taskset -c {t_mem} "
+    f"{python_executable} {read_mem} "
+    f"--output_csv {output_mem} --pid {benchmark_pid}"
+)
+        monitor_process2 = subprocess.Popen(monitor_command_mem, shell=True, stdin=subprocess.PIPE, text=True)
+
+        monitor_command_ips = (
+    f"echo 9900 | sudo -S taskset -c {t_ips} "
+    f"{python_executable} {read_ips} "
+    f"--output_csv {output_ips} --pid {benchmark_pid}"
+)
+        monitor_process3 = subprocess.Popen(monitor_command_ips, shell=True, stdin=subprocess.PIPE, text=True)
 
         # # monitor GPU metrics
         if suite != "npb":
@@ -115,8 +183,9 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
         for gpu_cap in gpu_caps:
             output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
             output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
-            output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
-            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics)
+            output_mem = f"../data/{suite}_solo/{benchmark}/cpu_mem.csv"
+            output_ips = f"../data/{suite}_solo/{benchmark}/cpu_ips.csv"
+            cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_mem, output_ips)
 
 
     # make sure the first run has complete data
@@ -124,8 +193,9 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
     gpu_cap = gpu_caps[0]
     output_cpu_power = f"../data/{suite}_solo/{benchmark}/cpu_power.csv"
     output_gpu_metrics = f"/home/cc/power/GPGPU/data/{suite}_solo/{benchmark}/gpu_metrics.csv"
-    output_cpu_metrics = f"../data/{suite}_solo/{benchmark}/cpu_metrics.csv"
-    cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_cpu_metrics)
+    output_mem = f"../data/{suite}_solo/{benchmark}/cpu_mem.csv"
+    output_ips = f"../data/{suite}_solo/{benchmark}/cpu_ips.csv"
+    cap_exp(cpu_cap, gpu_cap, output_cpu_power, output_gpu_metrics, output_mem, output_ips)
 
 
 
