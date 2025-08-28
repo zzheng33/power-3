@@ -140,7 +140,8 @@ def run_benchmark(benchmark_script_dir,benchmark, suite, test, size,cap_type):
         elif suite == "hec":
             run_benchmark_command = f"{python_executable} {run_hec} --benchmark {benchmark} --benchmark_script_dir {os.path.join(home_dir, benchmark_script_dir)}"
         
-        benchmark_process = subprocess.Popen(run_benchmark_command, shell=True)
+        # benchmark_process = subprocess.Popen(run_benchmark_command, shell=True)
+        
         benchmark_process = subprocess.Popen(f"taskset -c {allowed_str} {run_benchmark_command}", shell=True)
         benchmark_pid = benchmark_process.pid
 
